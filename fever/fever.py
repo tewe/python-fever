@@ -254,7 +254,7 @@ class FeverAPI(object):
         result['favicons'] = tuple([FeverAPIFavicon(x) for x in result['favicons']])
         return result
 
-    def get_items(self, since_id=None, max_id=None, with_id=None):
+    def get_items(self, since_id=None, max_id=None, with_ids=None):
         """Returns a dictionary of the response to fetching items.
         Due to the restriction of the API, you'll only get 50 items at the max.
 
@@ -290,7 +290,7 @@ class FeverAPI(object):
                 ]
             }
         """
-        if self.api_version < 2 and with_id is not None:
+        if self.api_version < 2 and with_ids is not None:
             raise UnsupportedAPI("get_items' with_ids parameter", requires_version=2)
 
         options = {}
@@ -298,8 +298,8 @@ class FeverAPI(object):
             options['since_id'] = since_id
         if max_id is not None:
             options['max_id'] = max_id
-        if with_id is not None:
-            options['with_id'] = with_id
+        if with_ids is not None:
+            options['with_ids'] = with_ids
 
         return self.get(self.items_url, options)
 
