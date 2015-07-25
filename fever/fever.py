@@ -20,7 +20,10 @@ def post_url(url, data):
         handle = urlopen(url, urlencode(data))
         content = handle.read()
         if content:
-            encoding = handle.headers['content-type'].split('charset=')[-1]
+            if 'charset' in handle.headers['content-type']:
+                encoding = handle.headers['content-type'].split('charset=')[-1]
+            else:
+                encoding = 'utf-8'
             content = unicode(content, encoding)
     finally:
         if handle is not None:
