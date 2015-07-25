@@ -10,9 +10,9 @@ try:
     import json
 except ImportError:
     import simplejson as json
-    
+
 __all__ = ['UnsupportedAPI', 'FeverAPI']
-    
+
 def post_url(url, data):
     handle = None
     content = None
@@ -46,12 +46,12 @@ class FeverAPIFavicon(dict):
 class FeverAPI(object):
     """
     The public API for interacting with a feed-a-fever installation.
-    
+
     To connect, you must first authenticate:
-    
+
     >>> fever = FeverAPI("http://mydomain.com/fever/")
     >>> fever.authenticate("myusername", "mypassword")
-    
+
     See http://feedafever.com/api for information reguarding the return
     values. All return values are in a dictionary form.
     """
@@ -59,60 +59,60 @@ class FeverAPI(object):
         self.url = url
         self.api_key = None
         self.api_version = None
-        
+
     @property
     def auth_url(self):
         """Used internally.
         The URL used the access the API and used to check authentication.
         """
         return self.url + '?api'
-    
+
     @property
     def groups_url(self):
         "Used Internally. The URL used to access fever groups."
         return self.auth_url + '&groups'
-    
+
     @property
     def feeds_url(self):
         "Used Internally. The URL used to access fever feeds."
         return self.auth_url + '&feeds'
-    
+
     @property
     def favicons_url(self):
         "Used Internally. The URL used to access fever favicons."
         return self.auth_url + '&favicons'
-    
+
     @property
     def items_url(self):
         "Used Internally. The URL used to access fever feed items."
         return self.auth_url + '&items'
-    
+
     @property
     def hotlinks_url(self):
         "Used Internally. The URL used to access fever hotlinks."
         return self.auth_url + '&links'
-    
+
     @property
     def unread_items_url(self):
         "Used Internally. The URL used to access unread feed items."
         return self.auth_url + '&unread_item_ids'
-    
+
     @property
     def saved_items_urls(self):
         "Used Internally. The URL used to access saved fever feed items."
         return self.auth_url + '&saved_item_ids'
-    
+
     @property
     def is_authenticated(self):
         "Returns True if we are logged in to a given site."
         return self.api_key is not None
-    
+
     def post_url(self, url=None, dic=None):
         """Used internally. Not recommended to invoke manually.
-        
+
         Performs a POST request to the given URL with dic as post-data.
         Automatically inserts the api_key and expects JSON returned.
-        
+
         Also converts last_refreshed_on_time to a python datetime.
         """
         if url is None:
@@ -124,12 +124,12 @@ class FeverAPI(object):
         if 'last_refreshed_on_time' in result:
             result['last_refreshed_on_time'] = datetime.fromtimestamp(int(result['last_refreshed_on_time']))
         return result
-        
+
     def authenticate(self, username, password=None):
         """Authenticates with the remote fever site.
-        
+
         You must call this before using any other API calls.
-        
+
         Leaving the password parameter blank will prompt via console.
         """
         hash = md5()
@@ -141,16 +141,16 @@ class FeverAPI(object):
             import getpass
             hash.update(getpass.getpass('Password: '))
         self.api_key = hash.hexdigest()
-        
+
         response = self.post_url() # defaults => auth
         self.api_version = response['api_version']
         if not response['auth']:
             self.api_key = None
         return response
-        
+
     def get(self, url, data=None):
         """Used internally. Not recommended to invoke manually.
-        
+
         identical to self.post_url(), except checks for an authenticate()
         call before invoking.
         """
@@ -163,7 +163,7 @@ class FeverAPI(object):
 
     def get_groups(self):
         """Returns a dictionary of the response to fetching all the fever groups.
-        
+
         An example return::
             {
                 "api_version": 2,
@@ -175,13 +175,13 @@ class FeverAPI(object):
                     //...
                 ]
             }
-        
+
         """
         return self.get(self.groups_url)
-    
+
     def get_feeds(self):
         """Returns a dictionary of the response to fetching all the feeds.
-        
+
         An example return::
             {
                 "api_version": 2,
@@ -215,16 +215,16 @@ class FeverAPI(object):
                     // ...
                 ]
             }
-        
+
         """
         results = self.get(self.feeds_url)
         for feed in results['feeds']:
             feed['feed_ids'] = tuple(map(int, link['feed_ids'].split(',')))
         return results
-    
+
     def get_favicons(self):
         """Returns a dictionary of the response to fetching all the favicons.
-        
+
         An example return::
             {
                 "api_version": 2,
@@ -243,18 +243,18 @@ class FeverAPI(object):
                         'id': 2,
                         'raw_data': '..'
                     }
-                
+
                 ]
             }
         """
         result = self.get(self.favicons_url)
         result['favicons'] = tuple([FeverAPIFavicon(x) for x in result['favicons']])
         return result
-    
+
     def get_items(self, since_id=None, max_id=None, with_id=None):
         """Returns a dictionary of the response to fetching items.
         Due to the restriction of the API, you'll only get 50 items at the max.
-        
+
         An example return::
             {
                 "api_version": 2,
@@ -289,7 +289,7 @@ class FeverAPI(object):
         """
         if self.api_version < 2 and with_id is not None:
             raise UnsupportedAPI("get_items' with_ids parameter", requires_version=2)
-        
+
         options = {}
         if since_id is not None:
             options['since_id'] = since_id
@@ -297,12 +297,12 @@ class FeverAPI(object):
             options['max_id'] = max_id
         if with_id is not None:
             options['with_id'] = with_id
-        
+
         return self.get(self.items_url, options)
-    
+
     def get_hotlinks(self, offset=None, range=None):
         """Returns a dictionary of hotlinks.
-        
+
         An example return::
             {
                 "api_version": 2,
@@ -347,4 +347,3 @@ class FeverAPI(object):
         for link in result['links']:
             link['item_ids'] = tuple(map(int, link['item_ids'].split(',')))
         return result
-        
