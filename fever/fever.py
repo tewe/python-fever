@@ -221,8 +221,8 @@ class FeverAPI(object):
 
         """
         results = self.get(self.feeds_url)
-        for feed in results['feeds']:
-            feed['feed_ids'] = tuple(map(int, link['feed_ids'].split(',')))
+        for feed in results['feeds_groups']:
+            feed['feed_ids'] = tuple(map(int, feed['feed_ids'].split(',')))
         return results
 
     def get_favicons(self):
